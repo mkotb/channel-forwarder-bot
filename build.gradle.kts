@@ -46,7 +46,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
 
     // kTelegram
-    implementation("com.jtelegram:ktelegrambotapi:4.0.11")
+    implementation("com.jtelegram:ktelegrambotapi:4.0.12")
 
     // Redis
     implementation("redis.clients:jedis:3.2.0")

@@ -1,7 +1,7 @@
 package com.mazenk.channelforwarder.link
 
-import com.mazenk.channelforwarder.GlobalContext
 import com.jtelegram.api.TelegramBotRegistry.GSON
+import com.mazenk.channelforwarder.GlobalContext
 
 object LinkController {
     private fun formatKey(origin: Long): String {
@@ -15,7 +15,7 @@ object LinkController {
     fun findLinks(origin: Long): Map<Long, LinkData> {
         return GlobalContext.redis.hgetAll(formatKey(origin))
                 .mapKeys {
-                    it.key.toLongOrNull() ?: -1L
+                    it.key.toLongOrNull() ?: Long.MIN_VALUE
                 }
                 .mapValues {
                     GSON.fromJson (
@@ -23,5 +23,6 @@ object LinkController {
                             LinkData::class.java
                     )
                 }
+                .filterKeys { it != Long.MIN_VALUE }
     }
 }
