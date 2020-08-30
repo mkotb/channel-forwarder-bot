@@ -1,6 +1,5 @@
 {
-  "redis_url":"localhost",
-  "redis_password":"",
+  "redis_url":"redis://localhost",
   "api_key":"<telegram bot api key here>",
   "admin_user_ids": [
     123,
