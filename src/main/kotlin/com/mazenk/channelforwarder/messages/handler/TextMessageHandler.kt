@@ -11,7 +11,7 @@ import com.mazenk.channelforwarder.messages.MessageHandler
 
 object TextMessageHandler: MessageHandler<TextMessage>(TextMessage::class) {
     private fun shouldDisablePreview(message: TextMessage): Boolean {
-        return message.entities.none { it.type == MessageEntityType.TEXT_LINK }
+        return message.entities.none { it.type == MessageEntityType.URL || it.type == MessageEntityType.TEXT_LINK }
     }
 
     override fun forward(linkData: LinkData, message: TextMessage): SendableMessageRequest<TextMessage> {
