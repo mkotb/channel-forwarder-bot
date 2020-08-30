@@ -34,9 +34,14 @@ private class MessageSender<C: Any, M: Message<C>> (
             return
         }
 
-        bot.execute(fn(linkData, clazz.java.cast(message)).apply {
-            chatId = dest
-        })
+        try {
+            bot.execute(fn(linkData, clazz.java.cast(message)).apply {
+                chatId = dest
+            })
+        } catch (ex: Exception) {
+            println("An error occurred while trying to forward a message")
+            ex.printStackTrace()
+        }
     }
 }
 
@@ -74,6 +79,8 @@ private val senders= listOf (
 
                         footer(message.chat)
                     })
+                    // todo detect whether there is a link in message.content
+                    .disableWebPagePreview(true)
                     .build()
         },
         MessageSender(PhotoMessage::class) { linkData, message ->

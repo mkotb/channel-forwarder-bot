@@ -20,6 +20,24 @@ object GlobalContext {
         }
 
         config = loaded ?: exitProcess(0)
-        redis = Jedis(URI(config.redisUrl))
+        redis = resolveRedis()
+    }
+
+    private fun resolveRedis(): Jedis {
+        var localRedis: Jedis? = null
+
+        while (localRedis == null) {
+            try {
+                localRedis = Jedis(URI(config.redisUrl))
+            } catch (ex: Exception) {
+                println("Unable to connect to redis")
+                ex.printStackTrace()
+
+                println("Trying again in 5 seconds...")
+                Thread.sleep(5000L)
+            }
+        }
+
+        return localRedis
     }
 }
