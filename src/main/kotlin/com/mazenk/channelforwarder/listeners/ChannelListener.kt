@@ -27,17 +27,19 @@ import kotlin.reflect.KClass
 
 private class MessageSender<C: Any, M: Message<C>> (
         val clazz: KClass<M>,
-        val fn: suspend (LinkData, M) -> SendableMessageRequest<M>
+        val fn: suspend (LinkData, M) -> SendableMessageRequest<M>?
 ) {
     suspend fun run(bot: TelegramBot, dest: LongChatId, linkData: LinkData, message: Message<*>) {
         if (message::class != clazz) {
             return
         }
 
+        val req = fn(linkData, clazz.java.cast(message))?.apply {
+            chatId = dest
+        } ?: return
+
         try {
-            bot.execute(fn(linkData, clazz.java.cast(message)).apply {
-                chatId = dest
-            })
+            bot.execute(req)
         } catch (ex: Exception) {
             println("An error occurred while trying to forward a message")
             ex.printStackTrace()
@@ -84,6 +86,10 @@ private val senders= listOf (
                     .build()
         },
         MessageSender(PhotoMessage::class) { linkData, message ->
+            if (message.mediaGroupId != 0L) {
+                return@MessageSender null
+            }
+
             SendPhoto.builder()
                     .photo(IdInputFile.of(message.highestResolutionPhoto))
                     .caption(createCaption(linkData, message))
