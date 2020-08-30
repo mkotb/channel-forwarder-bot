@@ -6,8 +6,7 @@ import java.io.FileReader
 import java.nio.file.Files
 
 data class BotConfig (
-        val redisUrl: String = "localhost",
-        val redisPassword: String? = "",
+        val redisUrl: String = "redis://localhost",
         val apiKey: String = "Insert API key here",
         val adminUserIds: Set<Long> = setOf(123L, 1234L)
 )

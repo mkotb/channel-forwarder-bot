@@ -1,6 +1,7 @@
 package com.mazenk.channelforwarder
 
 import redis.clients.jedis.Jedis
+import java.net.URI
 import kotlin.system.exitProcess
 
 object GlobalContext {
@@ -19,12 +20,6 @@ object GlobalContext {
         }
 
         config = loaded ?: exitProcess(0)
-        redis = Jedis(config.redisUrl)
-
-        val pass = config.redisPassword
-
-        if (pass?.isNotEmpty() == true) {
-            redis.auth(pass)
-        }
+        redis = Jedis(URI(config.redisUrl))
     }
 }
