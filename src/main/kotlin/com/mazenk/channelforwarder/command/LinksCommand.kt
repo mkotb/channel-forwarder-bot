@@ -52,7 +52,7 @@ val linksCommand = suspendCommand { event, command ->
         bold("Links for "); +originTag; newLines(2)
 
         links.forEach { link ->
-            +originTag; +" ➡️ "; +link.destinationTag; +" with tag "; italics(link.tag)
+            +originTag; +" ➡️ "; +link.destinationTag; +" with tag "; italics(link.tag); newLine()
         }
     })
 }
