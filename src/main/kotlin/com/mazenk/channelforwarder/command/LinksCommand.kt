@@ -59,7 +59,7 @@ val linksCommand = suspendCommand { event, command ->
         }
 
         channelTags[tag] = try {
-            bot.execute (
+            "@" + bot.execute (
                     GetChat.builder()
                             .chatId(ChatId.of(tag))
                             .build()
@@ -73,7 +73,7 @@ val linksCommand = suspendCommand { event, command ->
         bold("Links for "); +chatTag; newLines(2)
 
         fullLinks.forEach { (origin, data) ->
-            +"@${channelTags[origin]} ➡️  ${data.destinationTag} with tag "; italics(data.tag); newLine()
+            +"${channelTags[origin]}  ➡️  ${data.destinationTag} with tag "; italics(data.tag); newLine()
         }
     })
 }
