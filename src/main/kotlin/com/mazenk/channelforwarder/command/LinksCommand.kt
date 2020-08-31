@@ -23,36 +23,57 @@ val linksCommand = suspendCommand { event, command ->
         return@suspendCommand
     }
 
-    val originTag = command.args[0]
+    val chatTag = command.args[0]
     val chat: Chat
 
     try {
         chat = bot.execute (
                 GetChat.builder()
-                        .chatId(ChatId.of(originTag))
+                        .chatId(ChatId.of(chatTag))
                         .build()
         )
     } catch (ex: TelegramException) {
         event.replyWith(textBuilder {
-            +"There was an error in finding channel $originTag."; newLines(2)
+            +"There was an error in finding channel $chatTag."; newLines(2)
 
             +"Are you sure this bot has access to that channel?"
         })
         return@suspendCommand
     }
 
-    val links = LinkController.findLinks(chat.id).values
+    val fullLinks = LinkController.findFullLinks(chat.id)
+    val channelTags = HashMap<Long, String>()
 
-    if (links.isEmpty()) {
-        event.replyWith("No links found for $originTag!")
+    channelTags[chat.id] = chatTag
+
+    if (fullLinks.isEmpty()) {
+        event.replyWith("No links found for $chatTag!")
         return@suspendCommand
     }
 
-    event.replyWith(textBuilder {
-        bold("Links for "); +originTag; newLines(2)
+    event.replyWith("Fetching chat info...")
 
-        links.forEach { link ->
-            +originTag; +" ➡️ "; +link.destinationTag; +" with tag "; italics(link.tag); newLine()
+    fullLinks.keys.forEach { tag ->
+        if (channelTags.containsKey(tag)) {
+            return@forEach
+        }
+
+        channelTags[tag] = try {
+            bot.execute (
+                    GetChat.builder()
+                            .chatId(ChatId.of(tag))
+                            .build()
+            ).username
+        } catch (ex: Exception) {
+            "@ERROR_CHAT_UNAVAILABLE"
+        }
+    }
+
+    event.replyWith(textBuilder {
+        bold("Links for "); +chatTag; newLines(2)
+
+        fullLinks.forEach { (origin, data) ->
+            +"@${channelTags[origin]} ➡️  ${data.destinationTag} with tag "; italics(data.tag); newLine()
         }
     })
 }
