@@ -1,14 +1,9 @@
 package com.mazenk.channelforwarder.command
 
-import com.jtelegram.api.chat.Chat
-import com.jtelegram.api.chat.ChatType
-import com.jtelegram.api.chat.id.ChatId
-import com.jtelegram.api.ex.TelegramException
 import com.jtelegram.api.kotlin.commands.suspendCommand
 import com.jtelegram.api.kotlin.events.message.replyWith
 import com.jtelegram.api.kotlin.execute
 import com.jtelegram.api.kotlin.util.textBuilder
-import com.jtelegram.api.requests.chat.GetChat
 import com.jtelegram.api.requests.chat.GetChatMember
 import com.mazenk.channelforwarder.link.LinkController
 import com.mazenk.channelforwarder.link.LinkData
@@ -26,28 +21,10 @@ val linkCommand = suspendCommand { event, command ->
         return@suspendCommand
     }
 
-    suspend fun findChatByArg(index: Int): Chat? {
-        val name = command.args[index]
-
-        try {
-            val chat = bot.execute(GetChat.builder().chatId(ChatId.of(name)).build())
-
-            if (chat.type != ChatType.CHANNEL) {
-                event.replyWith("$name must be a channel!")
-                return null
-            }
-
-            return chat
-        } catch (ex: TelegramException) {
-            event.replyWith("There was a problem finding chat information for $name")
-            return null
-        }
-    }
-
     event.replyWith("Fetching chat info...")
 
-    val origin = findChatByArg(0) ?: return@suspendCommand
-    val destination = findChatByArg(1) ?: return@suspendCommand
+    val origin = findChatByArg(event, 0) ?: return@suspendCommand
+    val destination = findChatByArg(event, 1) ?: return@suspendCommand
 
     val destinationBotMember = bot.execute (
             GetChatMember.builder()

@@ -13,6 +13,7 @@ import com.jtelegram.api.kotlin.registerBot
 import com.jtelegram.api.update.PollingUpdateProvider
 import com.mazenk.channelforwarder.command.linkCommand
 import com.mazenk.channelforwarder.command.linksCommand
+import com.mazenk.channelforwarder.command.unlinkCommand
 import com.mazenk.channelforwarder.listeners.channelListener
 import com.mazenk.channelforwarder.listeners.editListener
 import kotlinx.coroutines.runBlocking
@@ -26,6 +27,7 @@ fun main() = runBlocking {
 
     bot.commandRegistry.registerCommand("link", wrapCommand(linkCommand))
     bot.commandRegistry.registerCommand("links", wrapCommand(linksCommand))
+    bot.commandRegistry.registerCommand("unlink", wrapCommand(unlinkCommand))
 
     bot.eventRegistry.on(ChannelPostEvent::class, wrapListener(channelListener))
     bot.eventRegistry.on(ChannelPostEditEvent::class, wrapListener(editListener))
