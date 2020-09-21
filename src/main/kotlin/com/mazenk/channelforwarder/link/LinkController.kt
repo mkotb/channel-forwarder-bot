@@ -8,17 +8,23 @@ object LinkController {
         return "channelforwarder:links:$origin"
     }
 
-    fun createLink(origin: Long, destination: Long, data: LinkData) {
-        GlobalContext.redis.hset(formatKey(origin), destination.toString(), GSON.toJson(data))
+    suspend fun createLink(origin: Long, destination: Long, data: LinkData) {
+        GlobalContext.useRedis {
+            it.hset(formatKey(origin), destination.toString(), GSON.toJson(data))
+        }
     }
 
-    fun deleteLink(origin: Long, destination: Long): Boolean {
-        return GlobalContext.redis.hdel(formatKey(origin), destination.toString()) == 1L
+    suspend fun deleteLink(origin: Long, destination: Long): Boolean {
+        return GlobalContext.useRedis {
+            it.hdel(formatKey(origin), destination.toString()) == 1L
+        }
     }
 
-    fun findFullLinks(chat: Long): Map<Long, LinkData> {
+    suspend fun findFullLinks(chat: Long): Map<Long, LinkData> {
         val all = HashMap<Long, LinkData>()
-        val linkKeys = GlobalContext.redis.keys("channelforwarder:links:*")
+        val linkKeys = GlobalContext.useRedis {
+            it.keys("channelforwarder:links:*")
+        }
 
         for (key in linkKeys) {
             val origin = key.substring(23).toLongOrNull() ?: continue
@@ -38,17 +44,16 @@ object LinkController {
         return all
     }
 
-    fun findLinks(origin: Long): Map<Long, LinkData> {
-        return GlobalContext.redis.hgetAll(formatKey(origin))
-                .mapKeys {
-                    it.key.toLongOrNull() ?: Long.MIN_VALUE
-                }
-                .mapValues {
-                    GSON.fromJson (
-                            it.value,
-                            LinkData::class.java
-                    )
-                }
-                .filterKeys { it != Long.MIN_VALUE }
+    suspend fun findLinks(origin: Long): Map<Long, LinkData> {
+        return GlobalContext.useRedis { redis ->
+            redis.hgetAll(formatKey(origin))
+        }.mapKeys {
+            it.key.toLongOrNull() ?: Long.MIN_VALUE
+        }.mapValues {
+            GSON.fromJson(
+                    it.value,
+                    LinkData::class.java
+            )
+        }.filterKeys { it != Long.MIN_VALUE }
     }
 }

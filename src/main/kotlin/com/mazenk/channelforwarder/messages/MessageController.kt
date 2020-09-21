@@ -71,23 +71,28 @@ object MessageController {
         }
     }
 
-    fun hasLinkedMessages(message: Message<*>): Boolean {
-        return GlobalContext.redis.exists(formatKey(message))
+    suspend fun hasLinkedMessages(message: Message<*>): Boolean {
+        return GlobalContext.useRedis {
+            it.exists(formatKey(message))
+        }
     }
 
-    fun saveMessage(message: Message<*>, forwarded: Message<*>) {
-        GlobalContext.redis.hset(formatKey(message), forwarded.chat.id.toString(), forwarded.messageId.toString())
+    suspend fun saveMessage(message: Message<*>, forwarded: Message<*>) {
+        GlobalContext.useRedis {
+            it.hset(formatKey(message), forwarded.chat.id.toString(), forwarded.messageId.toString())
+        }
     }
 
-    fun findLinkedMessages(message: Message<*>): Map<Long, Long> {
-        return GlobalContext.redis.hgetAll(formatKey(message))
-                .mapKeys {
-                    it.key.toLongOrNull() ?: INVALID_LONG
-                }
-                .mapValues {
-                    it.value.toLongOrNull() ?: INVALID_LONG
-                }
-                .filter { it.key != INVALID_LONG && it.value != INVALID_LONG }
+    suspend fun findLinkedMessages(message: Message<*>): Map<Long, Long> {
+        return GlobalContext.useRedis {
+            it.hgetAll(formatKey(message))
+        }.mapKeys {
+            it.key.toLongOrNull() ?: INVALID_LONG
+        }.mapValues {
+            it.value.toLongOrNull() ?: INVALID_LONG
+        }.filter {
+            it.key != INVALID_LONG && it.value != INVALID_LONG
+        }
     }
 
     private fun <T> findHandler(clazz: KClass<out Message<T>>): MessageHandler<Message<T>>? {

@@ -10,9 +10,9 @@ import com.jtelegram.api.kotlin.util.textBuilder
 import com.jtelegram.api.requests.chat.GetChat
 import com.mazenk.channelforwarder.link.LinkController
 
-val linksCommand = suspendCommand { event, command ->
+val linksCommand = suspendCommand(wrapCommand { event, command ->
     if (isNotAuthorized(event)) {
-        return@suspendCommand
+        return@wrapCommand
     }
 
     if (command.args.size < 1) {
@@ -20,7 +20,7 @@ val linksCommand = suspendCommand { event, command ->
             bold("Command Format: ")
             +"/links @channel"
         })
-        return@suspendCommand
+        return@wrapCommand
     }
 
     val chatTag = command.args[0]
@@ -38,7 +38,7 @@ val linksCommand = suspendCommand { event, command ->
 
             +"Are you sure this bot has access to that channel?"
         })
-        return@suspendCommand
+        return@wrapCommand
     }
 
     val fullLinks = LinkController.findFullLinks(chat.id)
@@ -48,7 +48,7 @@ val linksCommand = suspendCommand { event, command ->
 
     if (fullLinks.isEmpty()) {
         event.replyWith("No links found for $chatTag!")
-        return@suspendCommand
+        return@wrapCommand
     }
 
     event.replyWith("Fetching chat info...")
@@ -76,4 +76,4 @@ val linksCommand = suspendCommand { event, command ->
             +"${channelTags[origin]}  ➡️  ${data.destinationTag} with tag "; italics(data.tag); newLine()
         }
     })
-}
+})

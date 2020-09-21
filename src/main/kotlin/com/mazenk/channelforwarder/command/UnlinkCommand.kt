@@ -5,9 +5,9 @@ import com.jtelegram.api.kotlin.events.message.replyWith
 import com.jtelegram.api.kotlin.util.textBuilder
 import com.mazenk.channelforwarder.link.LinkController
 
-val unlinkCommand = suspendCommand { event, command ->
+val unlinkCommand = suspendCommand(wrapCommand { event, command ->
     if (isNotAuthorized(event)) {
-        return@suspendCommand
+        return@wrapCommand
     }
 
     if (command.args.size < 2) {
@@ -15,13 +15,13 @@ val unlinkCommand = suspendCommand { event, command ->
             bold("Command Format: ")
             +"/unlink @originChannel @destinationChannel"
         })
-        return@suspendCommand
+        return@wrapCommand
     }
 
     event.replyWith("Fetching chat info...")
 
-    val origin = findChatByArg(event, 0) ?: return@suspendCommand
-    val destination = findChatByArg(event, 1) ?: return@suspendCommand
+    val origin = findChatByArg(event, 0) ?: return@wrapCommand
+    val destination = findChatByArg(event, 1) ?: return@wrapCommand
     val result = LinkController.deleteLink(origin.id, destination.id)
 
     if (!result) {
@@ -34,7 +34,7 @@ val unlinkCommand = suspendCommand { event, command ->
 
             bold(destination.username)
         })
-        return@suspendCommand
+        return@wrapCommand
     }
 
     event.replyWith(textBuilder {
@@ -48,4 +48,4 @@ val unlinkCommand = suspendCommand { event, command ->
 
         +" has been deleted."
     })
-}
+})

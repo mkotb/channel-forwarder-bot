@@ -3,6 +3,7 @@ package com.mazenk.channelforwarder.command
 import com.jtelegram.api.chat.Chat
 import com.jtelegram.api.chat.ChatType
 import com.jtelegram.api.chat.id.ChatId
+import com.jtelegram.api.commands.Command
 import com.jtelegram.api.events.message.TextMessageEvent
 import com.jtelegram.api.ex.TelegramException
 import com.jtelegram.api.kotlin.BotContext
@@ -35,5 +36,19 @@ suspend fun BotContext.findChatByArg(event: TextMessageEvent, index: Int): Chat?
     } catch (ex: TelegramException) {
         event.replyWith("There was a problem finding chat information for $name")
         return null
+    }
+}
+
+fun wrapCommand(fn: suspend BotContext.(TextMessageEvent, Command) -> Unit): suspend BotContext.(TextMessageEvent, Command) -> Unit {
+    return { event, command ->
+        try {
+            fn(event, command)
+        } catch (ex: Exception) {
+            try {
+                event.replyWith("There was an error performing that command. Please contact the bot administrator")
+            } catch (ignore: Exception) {}
+
+            ex.printStackTrace()
+        }
     }
 }

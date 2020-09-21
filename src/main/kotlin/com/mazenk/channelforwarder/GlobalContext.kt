@@ -1,12 +1,16 @@
 package com.mazenk.channelforwarder
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
+import redis.clients.jedis.JedisPoolConfig
 import java.net.URI
 import kotlin.system.exitProcess
 
 object GlobalContext {
     val config: BotConfig
-    val redis: Jedis
+    private val redisPool: JedisPool
 
     init {
         val loaded: BotConfig?
@@ -20,15 +24,15 @@ object GlobalContext {
         }
 
         config = loaded ?: exitProcess(0)
-        redis = resolveRedis()
+        redisPool = resolveRedis()
     }
 
-    private fun resolveRedis(): Jedis {
-        var localRedis: Jedis? = null
+    private fun resolveRedis(): JedisPool {
+        var localRedis: JedisPool? = null
 
         while (localRedis == null) {
             try {
-                localRedis = Jedis(URI(config.redisUrl))
+                localRedis = JedisPool(JedisPoolConfig(), URI(config.redisUrl))
             } catch (ex: Exception) {
                 println("Unable to connect to redis")
                 ex.printStackTrace()
@@ -39,5 +43,11 @@ object GlobalContext {
         }
 
         return localRedis
+    }
+
+    suspend fun <T> useRedis(usage: (Jedis) -> T): T = withContext(Dispatchers.IO) {
+        redisPool.resource.use {  redis ->
+            usage(redis)
+        }
     }
 }

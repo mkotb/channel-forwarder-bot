@@ -8,9 +8,9 @@ import com.jtelegram.api.requests.chat.GetChatMember
 import com.mazenk.channelforwarder.link.LinkController
 import com.mazenk.channelforwarder.link.LinkData
 
-val linkCommand = suspendCommand { event, command ->
+val linkCommand = suspendCommand(wrapCommand { event, command ->
     if (isNotAuthorized(event)) {
-        return@suspendCommand
+        return@wrapCommand
     }
 
     if (command.args.size < 3) {
@@ -18,13 +18,13 @@ val linkCommand = suspendCommand { event, command ->
             bold("Command Format: ")
             +"/link @originChannel @destinationChannel #Tag"
         })
-        return@suspendCommand
+        return@wrapCommand
     }
 
     event.replyWith("Fetching chat info...")
 
-    val origin = findChatByArg(event, 0) ?: return@suspendCommand
-    val destination = findChatByArg(event, 1) ?: return@suspendCommand
+    val origin = findChatByArg(event, 0) ?: return@wrapCommand
+    val destination = findChatByArg(event, 1) ?: return@wrapCommand
 
     val destinationBotMember = bot.execute (
             GetChatMember.builder()
@@ -35,14 +35,14 @@ val linkCommand = suspendCommand { event, command ->
 
     if (!destinationBotMember.isCanPostMessages) {
         event.replyWith("The bot does not have permissions to post in the destination channel!")
-        return@suspendCommand
+        return@wrapCommand
     }
 
     val tag = command.args[2]
 
     if (!tag.startsWith("#")) {
         event.replyWith("Tag must start with #!")
-        return@suspendCommand
+        return@wrapCommand
     }
 
     LinkController.createLink (
@@ -65,4 +65,4 @@ val linkCommand = suspendCommand { event, command ->
 
         italics(tag)
     })
-}
+})
